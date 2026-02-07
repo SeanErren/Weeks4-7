@@ -866,6 +866,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddb1b673b8f2f8c408be99d043e69ddb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  powerSlider: {fileID: 1640486917}
   prefab: {fileID: 5562941472945844768, guid: 9a2d938072641bc46bf375b4df6fd849, type: 3}
   targets: []
 --- !u!4 &1100545692

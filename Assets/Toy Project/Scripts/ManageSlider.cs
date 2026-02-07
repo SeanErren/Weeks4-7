@@ -1,9 +1,11 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ManageSlider : MonoBehaviour
 {
     public Slider slider;
+    public TextMeshProUGUI percentage;
     public GameObject topBar;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -17,8 +19,9 @@ public class ManageSlider : MonoBehaviour
     {
         
     }
-    public void lowerHP(int amount)
+    public void lowerHP(float amount)
     {
         slider.value -= amount;
+        percentage.text = slider.value + "%";
     }
 }

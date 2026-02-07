@@ -5,10 +5,11 @@ using UnityEngine.UI;
 
 public class Spawner : MonoBehaviour
 {
+    public Slider powerSlider;
     public GameObject prefab;
     public List<GameObject> targets = new List<GameObject>();
 
-    private float perlinTimeX = 0, perlinTimeY = 10, prelinIncrement = 0.5f;
+    private float perlinTimeX = 0, perlinTimeY = 10, prelinIncrement = 0.3f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -38,6 +39,8 @@ public class Spawner : MonoBehaviour
         //Removing the amounts added to differentiate between targets so that each target can move correctly next frame
         perlinTimeX -= targets.Count;
         perlinTimeY -= targets.Count;
+
+        detectHit();
     }
 
     //Spawns 3 circles sets
@@ -50,7 +53,6 @@ public class Spawner : MonoBehaviour
         //GENERATE COLORS FOR PREFABS
         //--------------------------------------------------------------------------------------------------------------------
         //I don't know why the colors return values between 0 and 1 instead of 0 - 255
-        float colorDifference = 0.2f;
 
         Color c1 = Random.ColorHSV();
         Color c2 = Random.ColorHSV();
@@ -60,6 +62,7 @@ public class Spawner : MonoBehaviour
 
         //MAKING SURE THAT THE COLORS ARE DIFFERENT ENOUGH FROM EACH OTHER - NOT EXITING THE LOOP SOMETIMES <--- NEED TO FIX
         //making sure that c2 is different enough from c1
+        //float colorDifference = 0.2f;
         //while (true)
         //{
         //    //If any of the RGB value are x away between c1 and c2 (making sure that the color is different enough), exit
@@ -152,6 +155,28 @@ public class Spawner : MonoBehaviour
         float finalValue = newValue + desiredMin;
 
         return finalValue;
+    }
+    //Detect a hit and remove the damage amount from the correct slider
+    void detectHit()
+    {
+        //If the mouse was pressed
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            //Check if it was pressed over the targets
+            for (int i = 0;i < targets.Count;i++)
+            {
+                //If the mouse's position in world space converted to Vector2 (to lose the -10 z) is within the bounds of the spriteRenderer of the circle
+                if (targets[i].GetComponent<SpriteRenderer>().bounds.Contains((Vector2)Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())))
+                {
+                    //Remove the HP from the same colored bar, corrosponding to the amount in the slider (if the slider reads 8 - remove 8HP)
+                    //The corrosponding bar is always the one before (unless it's the first one in which case it's the last) due to how the colors are asigned
+                    if (i > 0)
+                        targets[i - 1].GetComponent<ManageSlider>().lowerHP(powerSlider.value);
+                    else
+                        targets[targets.Count - 1].GetComponent<ManageSlider>().lowerHP(powerSlider.value);
+                }   
+            }
+        }
     }
 }
 
