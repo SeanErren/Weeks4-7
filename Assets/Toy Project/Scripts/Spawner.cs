@@ -14,6 +14,7 @@ public class Spawner : MonoBehaviour
     public Button validateButton;
     public GameObject finalScoreHolder; //The setActive = false game object that hides the TextMesh (since there is no setActive for TextMesh)
     public TextMeshProUGUI finalScore; //The TextMesh containing the final score
+    public GameObject rotater;
 
     List<GameObject> targets = new List<GameObject>();
     GameObject requirementObject;
@@ -25,6 +26,9 @@ public class Spawner : MonoBehaviour
     //c1 is at the class level so it can be accessed when generating the requirements
     private Color c1;
 
+    //Makes sure that the end actions only happen once
+    private bool runEnd = false;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -35,43 +39,50 @@ public class Spawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //If the game is done
-        if (timer.hasEnded)
+        if (!runEnd)
         {
-            //Remove the circles
-            destroyPrefabs();
-            //Disable the validate button
-            validateButton.interactable = false;
-            //Disable the power bar
-            powerSlider.interactable = false;
-            //Set the final score and make it visible
-            finalScoreHolder.SetActive(true);
-            //I tried getting the final score from finalScoreHolder (finalScoreHolder.getComponent<TextMeshProUGUI>().text = "Final Score: " + score)
-            //But got a Null pointer exception even though the TextMesh is under FinalScoreHolder so I just grabbed it separately from the inspector.
-            finalScore.text = "Final Score: " + score;
-        }
-        //If the game is running
-        else
-        {
-            //Adding an increment to the perlin time
-            perlinTimeX += prelinIncrement * Time.deltaTime;
-            perlinTimeY += prelinIncrement * Time.deltaTime;
-
-            foreach (GameObject target in targets)
+            //If the game is done
+            if (timer.hasEnded)
             {
-                //Adding a big increment to perlin time to differentiate between the targets
-                perlinTimeX += 1;
-                perlinTimeY += 1;
-                //Setting a new position based on a mapped perlin noise for x and y as well as off-centering that position for the sake of the UI elements
-                target.transform.position = new Vector2(mapFloat(Mathf.PerlinNoise(perlinTimeX, perlinTimeX), 0, 1, -8, 8) - 1
-                    , mapFloat(Mathf.PerlinNoise(perlinTimeY, perlinTimeY), 0, 1, -5, 5) + 1.5f);
-            }
-            //Removing the amounts added to differentiate between targets so that each target can move correctly next frame
-            perlinTimeX -= targets.Count;
-            perlinTimeY -= targets.Count;
+                //Remove the circles
+                destroyPrefabs();
+                //Disable the validate button
+                validateButton.interactable = false;
+                //Disable the power bar
+                powerSlider.interactable = false;
+                //Set the weeeee in motion (hi kit <---- this rotates :) )
+                rotater.SetActive(true);
+                //Set the final score and make it visible
+                finalScoreHolder.SetActive(true);
+                //I tried getting the final score from finalScoreHolder (finalScoreHolder.getComponent<TextMeshProUGUI>().text = "Final Score: " + score)
+                //But got a Null pointer exception even though the TextMesh is under FinalScoreHolder so I just grabbed it separately from the inspector.
+                finalScore.text = "Final Score: " + score;
 
-            detectHit();
-        }   
+                runEnd = true;
+            }
+            //If the game is running
+            else
+            {
+                //Adding an increment to the perlin time
+                perlinTimeX += prelinIncrement * Time.deltaTime;
+                perlinTimeY += prelinIncrement * Time.deltaTime;
+
+                foreach (GameObject target in targets)
+                {
+                    //Adding a big increment to perlin time to differentiate between the targets
+                    perlinTimeX += 1;
+                    perlinTimeY += 1;
+                    //Setting a new position based on a mapped perlin noise for x and y as well as off-centering that position for the sake of the UI elements
+                    target.transform.position = new Vector2(mapFloat(Mathf.PerlinNoise(perlinTimeX, perlinTimeX), 0, 1, -8, 8) - 1
+                        , mapFloat(Mathf.PerlinNoise(perlinTimeY, perlinTimeY), 0, 1, -5, 5) + 1.5f);
+                }
+                //Removing the amounts added to differentiate between targets so that each target can move correctly next frame
+                perlinTimeX -= targets.Count;
+                perlinTimeY -= targets.Count;
+
+                detectHit();
+            }
+        }
     }
 
     //Spawns 3 circles sets
