@@ -5,6 +5,8 @@ public class TimerScript : MonoBehaviour
 {
     public Slider timerSlider;
     public GameObject timer;
+
+    public bool hasEnded = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,6 +19,9 @@ public class TimerScript : MonoBehaviour
     {
         timerSlider.value -= Time.deltaTime;
         if (timerSlider.value <= 0)
+        {
             timer.SetActive(false);
+            hasEnded = true;
+        }
     }
 }

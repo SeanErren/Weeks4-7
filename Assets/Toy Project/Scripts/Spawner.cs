@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -6,41 +7,71 @@ using UnityEngine.UI;
 public class Spawner : MonoBehaviour
 {
     public Slider powerSlider;
-    public GameObject prefab;
-    public List<GameObject> targets = new List<GameObject>();
+    public GameObject prefab; //The sets prefab
+    public GameObject requirementPrefab; //The requirement prefab
+    public TextMeshProUGUI scoreText;
+    public TimerScript timer;
+    public Button validateButton;
+    public GameObject finalScoreHolder; //The setActive = false game object that hides the TextMesh (since there is no setActive for TextMesh)
+    public TextMeshProUGUI finalScore; //The TextMesh containing the final score
+
+    List<GameObject> targets = new List<GameObject>();
+    GameObject requirementObject;
+    float requirementPercentage = 0;
+    float score = 0;
 
     private float perlinTimeX = 0, perlinTimeY = 10, prelinIncrement = 0.3f;
+
+    //c1 is at the class level so it can be accessed when generating the requirements
+    private Color c1;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        spawnRound();
+        generateRequirements();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Adding an increment to the perlin time
-        perlinTimeX += prelinIncrement * Time.deltaTime;
-        perlinTimeY += prelinIncrement * Time.deltaTime;
-
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            spawnRound();
-
-        foreach (GameObject target in targets)
+        //If the game is done
+        if (timer.hasEnded)
         {
-            //Adding a big increment to perlin time to differentiate between the targets
-            perlinTimeX += 1;
-            perlinTimeY += 1;
-            //Setting a new position based on a mapped perlin noise for x and y as well as off-centering that position for the sake of the UI elements
-            target.transform.position = new Vector2(mapFloat(Mathf.PerlinNoise(perlinTimeX, perlinTimeX), 0, 1, -8, 8) - 1
-                , mapFloat(Mathf.PerlinNoise(perlinTimeY, perlinTimeY), 0, 1, -5, 5) + 1.5f);
+            //Remove the circles
+            destroyPrefabs();
+            //Disable the validate button
+            validateButton.interactable = false;
+            //Disable the power bar
+            powerSlider.interactable = false;
+            //Set the final score and make it visible
+            finalScoreHolder.SetActive(true);
+            //I tried getting the final score from finalScoreHolder (finalScoreHolder.getComponent<TextMeshProUGUI>().text = "Final Score: " + score)
+            //But got a Null pointer exception even though the TextMesh is under FinalScoreHolder so I just grabbed it separately from the inspector.
+            finalScore.text = "Final Score: " + score;
         }
-        //Removing the amounts added to differentiate between targets so that each target can move correctly next frame
-        perlinTimeX -= targets.Count;
-        perlinTimeY -= targets.Count;
+        //If the game is running
+        else
+        {
+            //Adding an increment to the perlin time
+            perlinTimeX += prelinIncrement * Time.deltaTime;
+            perlinTimeY += prelinIncrement * Time.deltaTime;
 
-        detectHit();
+            foreach (GameObject target in targets)
+            {
+                //Adding a big increment to perlin time to differentiate between the targets
+                perlinTimeX += 1;
+                perlinTimeY += 1;
+                //Setting a new position based on a mapped perlin noise for x and y as well as off-centering that position for the sake of the UI elements
+                target.transform.position = new Vector2(mapFloat(Mathf.PerlinNoise(perlinTimeX, perlinTimeX), 0, 1, -8, 8) - 1
+                    , mapFloat(Mathf.PerlinNoise(perlinTimeY, perlinTimeY), 0, 1, -5, 5) + 1.5f);
+            }
+            //Removing the amounts added to differentiate between targets so that each target can move correctly next frame
+            perlinTimeX -= targets.Count;
+            perlinTimeY -= targets.Count;
+
+            detectHit();
+        }   
     }
 
     //Spawns 3 circles sets
@@ -54,11 +85,9 @@ public class Spawner : MonoBehaviour
         //--------------------------------------------------------------------------------------------------------------------
         //I don't know why the colors return values between 0 and 1 instead of 0 - 255
 
-        Color c1 = Random.ColorHSV();
+        c1 = Random.ColorHSV();
         Color c2 = Random.ColorHSV();
         Color c3 = Random.ColorHSV();
-
-        Debug.Log(c1.r + ", " + c2.r + ", " + c3.r);
 
         //MAKING SURE THAT THE COLORS ARE DIFFERENT ENOUGH FROM EACH OTHER - NOT EXITING THE LOOP SOMETIMES <--- NEED TO FIX
         //making sure that c2 is different enough from c1
@@ -122,11 +151,15 @@ public class Spawner : MonoBehaviour
     //Clear instantiated objects
     void destroyPrefabs()
     {
+        //Destroys the circle sets
         for (int i = 0; i < targets.Count; i++)
         {
             Destroy(targets[i]);
         }
         targets.Clear();
+
+        //Destroys the requirement
+        Destroy(requirementObject);
     }
     //Spawns a set of a circle and a bar
     void spawnPrefab()
@@ -177,6 +210,35 @@ public class Spawner : MonoBehaviour
                 }   
             }
         }
+    }
+    //Generates the requiremenets bar and percentage
+    void generateRequirements()
+    {
+        //Instantiating the prefab and saving it in the object
+        requirementObject = Instantiate(requirementPrefab);
+        //Getting the slider manager from the requirement object.
+        ManageSlider manager = requirementObject.GetComponent<ManageSlider>();
+        manager.topBar.GetComponent<Image>().color = c1;
+
+        //Ends at 70 to force more than 1 click from the user (max power is 20), starts at 1 so no spam, remove all health is involved
+        requirementPercentage = Random.Range(1, 70);
+        manager.slider.maxValue = 100;
+        //NOT WORKING: The slider's value resets to 100/100 for some reason after setting it to the random amount, using the percentage to check the values instead
+        manager.slider.value = requirementPercentage;
+        manager.percentage.text = requirementPercentage + "%";
+    }
+    //Check for validation and enact validation actions if validated (add 1 to the score and regenerate the circle sets
+    public void validate()
+    {
+        //If the requirement bar is equal to the target's bar
+        if (requirementPercentage == targets[2].GetComponent<ManageSlider>().slider.value)
+        {
+            score++;
+            scoreText.text = "Score: " + score;
+        }
+        //Spawns a new round of sets and requirement after validation
+        spawnRound();
+        generateRequirements();
     }
 }
 

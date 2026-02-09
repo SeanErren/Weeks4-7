@@ -10,7 +10,8 @@ public class PowerPercentage : MonoBehaviour
     void Start()
     {
         slider.maxValue = 20;
-        slider.value = 0;
+        slider.minValue = 1;
+        slider.value = slider.maxValue/2;
     }
 
     // Update is called once per frame
