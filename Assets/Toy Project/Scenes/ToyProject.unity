@@ -1071,6 +1071,7 @@ MonoBehaviour:
   validateButton: {fileID: 1329237669}
   finalScoreHolder: {fileID: 1809737382}
   finalScore: {fileID: 296153726}
+  rotater: {fileID: 1834521571}
 --- !u!4 &1100545692
 Transform:
   m_ObjectHideFlags: 0
@@ -1815,7 +1816,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1834521572
 Transform:
   m_ObjectHideFlags: 0
@@ -1844,7 +1845,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33cb5454fe54bbd4aaaa17d4c66c62f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObject: {fileID: 0}
 --- !u!1 &1883671046
 GameObject:
   m_ObjectHideFlags: 0
