@@ -16,6 +16,7 @@ public class Numbers : MonoBehaviour
             number *= multiplier;
         }
 
+        //Divide by 0 gives infinity
         number /= divisor;
 
         Debug.Log(number);
